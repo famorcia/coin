@@ -1,5 +1,5 @@
-#ifndef COIN_COINOFFSCREENGLCANVAS_H
-#define COIN_COINOFFSCREENGLCANVAS_H
+#ifndef COIN_SOOFFSCREENOSMESADATA_H
+#define COIN_SOOFFSCREENOSMESADATA_H
 
 /**************************************************************************\
  * Copyright (c) Kongsberg Oil & Gas Technologies AS
@@ -39,48 +39,19 @@
 
 // *************************************************************************
 
-#include <Inventor/SbVec2s.h>
+#include <GL/osmesa.h>
+#include <Inventor/SbVec2f.h>
 #include "Inventor/C/glue/gl.h"
 
 // *************************************************************************
 
-class CoinOffscreenGLCanvas {
+class SoOffscreenOSMesaData {
 public:
-  CoinOffscreenGLCanvas(void);
-  virtual ~CoinOffscreenGLCanvas();
-
-  uint32_t activateGLContext(void);
-  void deactivateGLContext(void);
-
-  void setWantedSize(SbVec2s size);
-  const SbVec2s & getActualSize(void) const;
-
-  void readPixels(uint8_t * dst, const SbVec2s & vpdims,
-                  unsigned int dstrowsize,
-                  unsigned int nrcomponents) const;
-
-  static SbBool debug(void);
-
-  static SbBool allowResourcehog(void);
-
-  const void * const & getHDC(void) const; // ugliness to support SoOffscreenRenderer::getDC()
-  void updateDCBitmap();	
-private:
-  static SbBool clampSize(SbVec2s & s);
-  static void clampToPixelSizeRoof(SbVec2s & s);
-  static SbVec2s getMaxTileSize(void);
-  static unsigned int tilesizeroof;
-  uint32_t tryActivateGLContext(void);
-  void destructContext(void);
-  
-  SbVec2s size;
-
-  void * context;
-  uint32_t renderid;
-  const void * current_hdc;
-    cc_glglue_offscreen_cb_functions offscreenCbFunctions;
+    static SbVec2f getResolution(void);
+    static void init(cc_glglue_offscreen_cb_functions*);
+    static void finish();
 };
 
 // *************************************************************************
 
-#endif // !COIN_COINOFFSCREENGLCANVAS_H
+#endif // !coin_sooffscreenosmesadata_h

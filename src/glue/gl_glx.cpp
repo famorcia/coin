@@ -488,7 +488,6 @@ glxglue_init(cc_glglue * w)
   glxglue_set_version(w, &w->glx.version.major, &w->glx.version.minor);
   w->glx.isdirect = glxglue_isdirect(w);
 
-
   w->glx.serverversion = NULL;
   w->glx.servervendor = NULL;
   w->glx.serverextensions = NULL;

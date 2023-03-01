@@ -44,6 +44,8 @@
 #if defined(HAVE_CONFIG_H)
 #include "config.h"
 #include "glue/gl_wgl.h"
+#include "SoOffscreenOSMesaData.h"
+
 #endif /* HAVE_CONFIG_H */
 
 // *************************************************************************
@@ -57,6 +59,9 @@ CoinOffscreenGLCanvas::CoinOffscreenGLCanvas(void)
   this->size = SbVec2s(0, 0);
   this->context = NULL;
   this->current_hdc = NULL;
+#ifdef HAVE_OSMESA
+    SoOffscreenOSMesaData::init(&offscreenCbFunctions);
+#endif
 }
 
 CoinOffscreenGLCanvas::~CoinOffscreenGLCanvas()
@@ -288,6 +293,7 @@ CoinOffscreenGLCanvas::deactivateGLContext(void)
 void
 CoinOffscreenGLCanvas::destructContext(void)
 {
+
   assert(this->context);
 
   if (cc_glglue_context_make_current(this->context)) {
@@ -307,6 +313,11 @@ CoinOffscreenGLCanvas::destructContext(void)
   this->context = NULL;
   this->renderid = 0;
   this->current_hdc = NULL;
+
+#ifdef HAVE_OSMESA
+    SoOffscreenOSMesaData::finish();
+#endif
+
 }
 
 // *************************************************************************

@@ -83,6 +83,7 @@ option(HAVE_3DS_IMPORT_CAPABILITIES "Enable 3ds import capabilities." ON)
 option(USE_EXTERNAL_EXPAT "Use system install of Expat." OFF)
 option(USE_EXCEPTIONS "Compile with exceptions (g++ only)." ON)
 option(USE_SUPERGLU "Use superglu library when ON, GLU implementation of platform when OFF (default)." OFF)
+option(USE_OFF_SCREEN_MESA "Use off screen Mesa instead of GLX is available." OFF)
 
 option(FONTCONFIG_RUNTIME_LINKING   "Enable FontConfig runtime linking when ON (default), disable when OFF." ON)
 option(FREETYPE_RUNTIME_LINKING     "Enable FreeType runtime linking when ON (default), disable when OFF." ON)
@@ -681,6 +682,14 @@ if(NOT (HAVE_WGL OR HAVE_AGL OR HAVE_CGL OR HAVE_GLX))
     #include <GL/glx.h>
     int main() { (void)glXChooseVisual(0L, 0, 0L); glEnd(); return 0; }
   " HAVE_GLX)
+  if(USE_OFF_SCREEN_MESA)
+    set(CMAKE_REQUIRED_LIBRARIES OSMesa)
+    check_cxx_source_compiles("
+      #include <GL/osmesa.h>
+      int main() { (void)OSMesaGetCurrentContext(); return 0; }
+    " HAVE_OSMESA)
+    list(APPEND COIN_TARGET_LINK_LIBRARIES OSMesa)
+  endif()
 endif()
 
 # Checks specific OpenGL configurations

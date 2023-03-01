@@ -232,6 +232,10 @@
 #include <GL/glx.h>
 #endif /* HAVE_GLX */
 
+#ifdef HAVE_OSMESA
+#include <GL/osmesa.h>
+#endif /* HAVE_GLX */
+
 #include <Inventor/C/glue/gl.h>
 
 #include <Inventor/C/errors/debugerror.h>
@@ -249,6 +253,7 @@
 #include "glue/gl_cgl.h"
 #include "glue/gl_glx.h"
 #include "glue/gl_wgl.h"
+#include "glue/gl_osmesa.h"
 #include "threads/threadsutilp.h"
 
 /* ********************************************************************** */
@@ -4412,7 +4417,7 @@ cc_glglue_context_make_current(void * ctx)
   if (offscreen_cb && offscreen_cb->make_current) {
     return (*offscreen_cb->make_current)(ctx);
   } else {
-#ifdef HAVE_NOGL
+#if HAVE_NOGL
   assert(FALSE && "unimplemented");
   return FALSE;
 #elif defined(HAVE_GLX)
@@ -4599,7 +4604,9 @@ cc_glglue_context_max_dimensions(unsigned int * width, unsigned int * height)
     /* query functions below should return TRUE if implemented, and
        the current offscreen buffer is a pbuffer: */
     SbBool ok = FALSE;
-#if defined(HAVE_WGL)
+#if defined(HAVE_OSMESA)
+    ok = osmesaglue_context_pbuffer_max(ctx, pbufmax);
+#elif defined(HAVE_WGL)
     ok = wglglue_context_pbuffer_max(ctx, pbufmax);
 #elif defined(HAVE_GLX)
     ok = glxglue_context_pbuffer_max(ctx, pbufmax);
@@ -5102,22 +5109,25 @@ void *
 coin_gl_current_context(void)
 {
   void * ctx = NULL;
+    if (offscreen_cb && offscreen_cb->current_context) {
+        return (*offscreen_cb->current_context)();
+    } else {
 
-#ifdef HAVE_GLX
-  ctx = glXGetCurrentContext();
+#if defined(HAVE_GLX)
+        ctx = glXGetCurrentContext();
 #endif /* HAVE_GLX */
 
 #ifdef HAVE_WGL
-  ctx = wglGetCurrentContext();
+        ctx = wglGetCurrentContext();
 #endif /* HAVE_WGL */
 
 #if defined(HAVE_AGL) || defined(HAVE_CGL)
-  /* Note: We cannot use aglGetCurrentContext() here, since that only
-     returns a value != NULL if the context has been set using
-     aglSetCurrentContext(). */
-  ctx = CGLGetCurrentContext();
+        /* Note: We cannot use aglGetCurrentContext() here, since that only
+           returns a value != NULL if the context has been set using
+           aglSetCurrentContext(). */
+        ctx = CGLGetCurrentContext();
 #endif
-
+    }
   return ctx;
 }
 

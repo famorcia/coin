@@ -12,6 +12,7 @@ set(COIN_RENDERING_FILES
 	SoOffscreenCGData.cpp
 	SoOffscreenGLXData.cpp
 	SoOffscreenWGLData.cpp
+    SoOffscreenOSMesaData.cpp
 	SoVBO.cpp
 	SoVertexArrayIndexer.cpp
 	CoinOffscreenGLCanvas.cpp
@@ -31,6 +32,8 @@ set(COIN_RENDERING_INTERNAL_FILES
 	SoOffscreenGLXData.cpp
 	SoOffscreenWGLData.h
 	SoOffscreenWGLData.cpp
+    SoOffscreenOSMesaData.h
+    SoOffscreenOSMesaData.cpp
 	SoVBO.h
 	SoVBO.cpp
 	SoVertexArrayIndexer.h
