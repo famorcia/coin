@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  schedule:
+  #schedule:
     #        ┌───────────── minute (0 - 59)
     #        │  ┌───────────── hour (0 - 23)
     #        │  │ ┌───────────── day of the month (1 - 31)
@@ -15,13 +15,13 @@ on:
     #        │  │ │ │ │
     #        │  │ │ │ │
     #        *  * * * *
-    - cron: '30 1 * * 0'
+  #  - cron: '30 1 * * 0'
 
 jobs:
   CodeQL-Build:
-
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     runs-on: ubuntu-latest
+
     permissions:
       # required for all workflows
       security-events: write
@@ -31,39 +31,35 @@ jobs:
       contents: read
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
           submodules: recursive
 
-    # Initializes the CodeQL tools for scanning.
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
-      # Override language selection by uncommenting this and choosing your languages
-      # with:
-      #   languages: go, javascript, csharp, python, cpp, java
-      with:
-        languages: cpp
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        # Override language selection by uncommenting this and choosing your languages
+        with:
+          #  go, javascript, csharp, python, cpp, java, ruby
+          languages: cpp
 
       # Autobuild attempts to build any compiled languages (C/C++, C#, Go, or Java).
       # If this step fails, then you should remove it and run the build manually (see below).
-    #- name: Autobuild
+      # -  name: Autobuild
       #   uses: github/codeql-action/autobuild@v2
 
-    # ℹ️ Command-line programs to run using the OS shell.
+      # ℹ️ Command-line programs to run using the OS shell.
       # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
 
       # ✏️ If the Autobuild fails above, remove it and uncomment the following
       #    three lines and modify them (or add more) to build your code if your
       #    project uses a compiled language
       -  name: Build
-      run: |
-        sudo apt-get -y update
-        sudo apt-get -y install freeglut3-dev libboost-dev
-        cmake -S . -B cmake_build_dir -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=cmake_install_dir
+         run: |
+           sudo apt-get -y update
+           sudo apt-get -y install freeglut3-dev libboost-dev
+           cmake -S . -B cmake_build_dir -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=cmake_install_dir
 
-    - name: Build project
-      run: cmake --build cmake_build_dir --target all --config Release -- -j4
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
