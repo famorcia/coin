@@ -384,6 +384,7 @@ public:
                        const SbViewportRegion & vpr,
                        SoGLRenderAction * glrenderaction = NULL)
   {
+
     this->master = masterptr;
     this->didreadbuffer = TRUE;
 

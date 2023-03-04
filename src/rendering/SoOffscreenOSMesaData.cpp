@@ -40,7 +40,7 @@
 #include "Inventor/C/glue/gl.h"
 #include "glue/gl_osmesa.h"
 
-#include <Inventor/errors/SoDebugError.h>
+SbBool SoOffscreenOSMesaData::initialized = FALSE;
 
 // Pixels-pr-mm.
 // TODO: add resolution
@@ -52,12 +52,15 @@ SoOffscreenOSMesaData::getResolution(void)
 
 void
 SoOffscreenOSMesaData::init(cc_glglue_offscreen_cb_functions* func) {
+    if(initialized)
+        return;
     func->create_offscreen = osmesaglue_context_create_offscreen;
     func->make_current = osmesaglue_context_make_current;
     func->current_context = osmesaglue_current_context;
     func->reinstate_previous = osmesaglue_context_reinstate_previous;
     func->destruct = osmesaglue_context_destruct;
     cc_glglue_context_set_offscreen_cb_functions(func);
+    initialized = TRUE;
 }
 
 void
@@ -65,5 +68,9 @@ SoOffscreenOSMesaData::finish() {
     cc_glglue_context_set_offscreen_cb_functions(NULL);
 }
 
+SbBool
+SoOffscreenOSMesaData::isInitialized() {
+    return (initialized);
+}
 
 #endif // HAVE_OSMESA

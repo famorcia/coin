@@ -39,15 +39,20 @@
 
 // *************************************************************************
 
+#ifdef HAVE_OSMESA
 #include <GL/osmesa.h>
+#endif
+
 #include <Inventor/SbVec2f.h>
 #include "Inventor/C/glue/gl.h"
 
 // *************************************************************************
 
 class SoOffscreenOSMesaData {
+    static SbBool initialized;
 public:
     static SbVec2f getResolution(void);
+    static SbBool isInitialized();
     static void init(cc_glglue_offscreen_cb_functions*);
     static void finish();
 };
