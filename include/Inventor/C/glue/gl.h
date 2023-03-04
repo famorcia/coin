@@ -646,6 +646,7 @@ typedef void * cc_glglue_offscreen_data;
 typedef struct cc_glglue_offscreen_cb_functions {
     cc_glglue_offscreen_data (*create_offscreen)(unsigned int width, unsigned int height);
     SbBool (*make_current)(cc_glglue_offscreen_data context);
+    cc_glglue_offscreen_data (*current_context)();
     void (*reinstate_previous)(cc_glglue_offscreen_data context);
     void (*destruct)(cc_glglue_offscreen_data context);
 } cc_glglue_offscreen_cb_functions; 

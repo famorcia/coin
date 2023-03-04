@@ -190,6 +190,9 @@
 /* define if you have GLX X11 OpenGL bindings */
 #cmakedefine HAVE_GLX
 
+/* define if you have Off Screen Mesa bindings */
+#cmakedefine HAVE_OSMESA
+
 /* Define to use gzdopen() */
 #cmakedefine HAVE_GZDOPEN 1
 

@@ -241,6 +241,10 @@
 #include <EGL/eglext.h>
 #endif /* HAVE_EGL */
 
+#ifdef HAVE_OSMESA
+#include <GL/osmesa.h>
+#endif /* HAVE_GLX */
+
 #include <Inventor/C/glue/gl.h>
 
 #include <Inventor/C/errors/debugerror.h>
@@ -256,9 +260,9 @@
 #include "glue/dlp.h"
 #include "glue/gl_agl.h"
 #include "glue/gl_cgl.h"
-#include "glue/gl_egl.h"
 #include "glue/gl_glx.h"
 #include "glue/gl_wgl.h"
+#include "glue/gl_egl.h"
 #include "threads/threadsutilp.h"
 
 /* ********************************************************************** */
@@ -4626,7 +4630,9 @@ cc_glglue_context_max_dimensions(unsigned int * width, unsigned int * height)
     /* query functions below should return TRUE if implemented, and
        the current offscreen buffer is a pbuffer: */
     SbBool ok = FALSE;
-#if defined(HAVE_WGL)
+#if defined(HAVE_OSMESA)
+    // TODO: ok = osmesaglue_context_pbuffer_max(ctx, pbufmax);
+#elif defined(HAVE_WGL)
     ok = wglglue_context_pbuffer_max(ctx, pbufmax);
 #elif defined(HAVE_GLX)
     ok = glxglue_context_pbuffer_max(ctx, pbufmax);
@@ -4791,8 +4797,6 @@ cc_glglue_context_pbuffer_is_bound(void * COIN_UNUSED_ARG(ctx))
   /* FIXME: Implement for GLX. kyrah 20031123. */
   assert(FALSE && "unimplemented");
   return FALSE;
-#elif defined(HAVE_EGL)
-  return eglglue_context_pbuffer_is_bound(ctx);
 #elif defined(HAVE_WGL)
   return wglglue_context_pbuffer_is_bound(ctx);
 #else
@@ -5139,6 +5143,9 @@ void *
 coin_gl_current_context(void)
 {
   void * ctx = NULL;
+    if (offscreen_cb && offscreen_cb->current_context) {
+        return (*offscreen_cb->current_context)();
+    } else {
 
 #ifdef HAVE_GLX
   ctx = glXGetCurrentContext();
@@ -5158,7 +5165,7 @@ coin_gl_current_context(void)
      aglSetCurrentContext(). */
   ctx = CGLGetCurrentContext();
 #endif
-
+ }
   return ctx;
 }
 

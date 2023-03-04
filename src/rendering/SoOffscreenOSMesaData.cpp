@@ -1,6 +1,3 @@
-#ifndef COIN_COINOFFSCREENGLCANVAS_H
-#define COIN_COINOFFSCREENGLCANVAS_H
-
 /**************************************************************************\
  * Copyright (c) Kongsberg Oil & Gas Technologies AS
  * All rights reserved.
@@ -33,54 +30,47 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \**************************************************************************/
 
-#ifndef COIN_INTERNAL
-#error this is a private header file
-#endif /* ! COIN_INTERNAL */
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif // HAVE_CONFIG_H
 
-// *************************************************************************
+#ifdef HAVE_OSMESA
 
-#include <Inventor/SbVec2s.h>
+#include "SoOffscreenOSMesaData.h"
 #include "Inventor/C/glue/gl.h"
+#include "glue/gl_osmesa.h"
 
-// *************************************************************************
+SbBool SoOffscreenOSMesaData::initialized = FALSE;
 
-class CoinOffscreenGLCanvas {
-public:
-  CoinOffscreenGLCanvas(void);
-  virtual ~CoinOffscreenGLCanvas();
+// Pixels-pr-mm.
+// TODO: add resolution
+SbVec2f
+SoOffscreenOSMesaData::getResolution(void)
+{
+    return SbVec2f(72.0f / 25.4f, 72.0f / 25.4f); // fall back to 72dpi
+}
 
-  uint32_t activateGLContext(void);
-  void deactivateGLContext(void);
+void
+SoOffscreenOSMesaData::init(cc_glglue_offscreen_cb_functions* func) {
+    if(initialized)
+        return;
+    func->create_offscreen = osmesaglue_context_create_offscreen;
+    func->make_current = osmesaglue_context_make_current;
+    func->current_context = osmesaglue_current_context;
+    func->reinstate_previous = osmesaglue_context_reinstate_previous;
+    func->destruct = osmesaglue_context_destruct;
+    cc_glglue_context_set_offscreen_cb_functions(func);
+    initialized = TRUE;
+}
 
-  void setWantedSize(SbVec2s size);
-  const SbVec2s & getActualSize(void) const;
+void
+SoOffscreenOSMesaData::finish() {
+    cc_glglue_context_set_offscreen_cb_functions(NULL);
+}
 
-  void readPixels(uint8_t * dst, const SbVec2s & vpdims,
-                  unsigned int dstrowsize,
-                  unsigned int nrcomponents) const;
+SbBool
+SoOffscreenOSMesaData::isInitialized() {
+    return (initialized);
+}
 
-  static SbBool debug(void);
-
-  static SbBool allowResourcehog(void);
-
-  const void * const & getHDC(void) const; // ugliness to support SoOffscreenRenderer::getDC()
-  void updateDCBitmap();	
-private:
-  static SbBool clampSize(SbVec2s & s);
-  static void clampToPixelSizeRoof(SbVec2s & s);
-  static SbVec2s getMaxTileSize(void);
-  static unsigned int tilesizeroof;
-  uint32_t tryActivateGLContext(void);
-  void destructContext(void);
-  
-  SbVec2s size;
-
-  void * context;
-  uint32_t renderid;
-  const void * current_hdc;
-    cc_glglue_offscreen_cb_functions offscreenCbFunctions;
-};
-
-// *************************************************************************
-
-#endif // !COIN_COINOFFSCREENGLCANVAS_H
+#endif // HAVE_OSMESA

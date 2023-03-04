@@ -350,17 +350,21 @@
 
 #include "CoinOffscreenGLCanvas.h"
 
-#ifdef HAVE_GLX
-#include "SoOffscreenGLXData.h"
-#endif // HAVE_GLX
+#ifdef HAVE_OSMESA
+    #include "SoOffscreenOSMesaData.h"
+#else // HAVE_OSMESA
+    #ifdef HAVE_GLX
+    #include "SoOffscreenGLXData.h"
+    #endif // HAVE_GLX
 
-#ifdef COIN_MACOS_10
-#include "SoOffscreenCGData.h"
-#endif // COIN_MACOS_10
+    #ifdef COIN_MACOS_10
+    #include "SoOffscreenCGData.h"
+    #endif // COIN_MACOS_10
 
-#ifdef HAVE_WGL
-#include "SoOffscreenWGLData.h"
-#endif // HAVE_WGL
+    #ifdef HAVE_WGL
+    #include "SoOffscreenWGLData.h"
+    #endif // HAVE_WGL
+#endif
 
 // *************************************************************************
 
@@ -380,6 +384,7 @@ public:
                        const SbViewportRegion & vpr,
                        SoGLRenderAction * glrenderaction = NULL)
   {
+
     this->master = masterptr;
     this->didreadbuffer = TRUE;
 
@@ -401,6 +406,7 @@ public:
     this->didallocation = glrenderaction ? FALSE : TRUE;
     this->viewport = vpr;
 	this->useDC = false;
+
   }
 
   ~SoOffscreenRendererP()
@@ -507,7 +513,9 @@ float
 SoOffscreenRenderer::getScreenPixelsPerInch(void)
 {
   SbVec2f pixmmres(72.0f / 25.4f, 72.0f / 25.4f);
-#ifdef HAVE_GLX
+#ifdef HAVE_OSMESA
+    pixmmres = SoOffscreenOSMesaData::getResolution();
+#elif defined HAVE_GLX
   pixmmres = SoOffscreenGLXData::getResolution();
 #elif defined(HAVE_WGL)
   pixmmres = SoOffscreenWGLData::getResolution();
