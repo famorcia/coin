@@ -36,15 +36,15 @@ jobs:
     name: Windows Build
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Checkout submodules
         run: git submodule update --init --recursive
       - name: Create build directory and run CMake
         shell: cmd
         run: |
           mkdir cmake_download_dir
-          set DOWNLOAD_FILE_BOOST=boost_1_72_0.zip
-          set DOWNLOAD_ADDRESS_BOOST=https://sourceforge.net/projects/boost/files/boost/1.72.0/boost_1_72_0.zip/download
+          set DOWNLOAD_FILE_BOOST=boost_1_81_0.zip
+          set DOWNLOAD_ADDRESS_BOOST=https://sourceforge.net/projects/boost/files/boost/1.81.0/boost_1_81_0.zip/download
           echo download file %DOWNLOAD_FILE_BOOST% from address %DOWNLOAD_ADDRESS_BOOST%
           curl -L -o %DOWNLOAD_FILE_BOOST% %DOWNLOAD_ADDRESS_BOOST%
           7z x %DOWNLOAD_FILE_BOOST% -ocmake_download_dir
