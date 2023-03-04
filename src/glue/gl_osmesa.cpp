@@ -30,16 +30,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \**************************************************************************/
 
-/*
-  Environment variable controls available:
-
-  - COIN_GLXGLUE_NO_PBUFFERS: set to 1 to force software rendering of
-    offscreen contexts.
-
-  - COIN_GLXGLUE_NO_GLX13_PBUFFERS: don't use GLX 1.3 pbuffers support
-    (will then attempt to use pbuffers through extensions).
-*/
-
 #include "glue/gl_osmesa.h"
 
 #ifdef HAVE_CONFIG_H
@@ -158,11 +148,19 @@ struct osmesaglue_contextdata {
     int width;
     int height;
 
+    OSMesaContext storedcontext;
+    void *storedcontext_buffer;
+    int storedcontext_type;
+    int storedcontext_width;
+    int storedcontext_height;
+
+
     osmesaglue_contextdata(int w, int h)
-    :ctx(0)
-    ,buffer(0)
-    ,width(w)
-    ,height(h) {
+            :ctx(0)
+            ,buffer(0)
+            ,width(w)
+            ,height(h)
+            ,storedcontext(0){
     }
 
     ~osmesaglue_contextdata() {
@@ -178,7 +176,7 @@ struct osmesaglue_contextdata {
 
 #define PRINT_ME() \
 if (coin_glglue_debug()) {\
-cc_debugerror_postinfo("glxglue_init", "%s",__PRETTY_FUNCTION__); }\
+cc_debugerror_postinfo("osmesaglue", "%s",__PRETTY_FUNCTION__); }\
 do {} while (0)
 
 void *
@@ -218,16 +216,25 @@ osmesaglue_init(cc_glglue * w)
 void *
 osmesaglue_context_create_offscreen(unsigned int width, unsigned int height)
 {
-    PRINT_ME();
     osmesaglue_contextdata* osmesa_ctx = new osmesaglue_contextdata(width, height);
 
     // osmesa_ctx->ctx = OSMesaCreateContextExt( OSMESA_RGBA, 16, 0, 0, NULL );
     osmesa_ctx->ctx = OSMesaCreateContext(OSMESA_RGBA, NULL );
     if(!osmesa_ctx->ctx) {
-        std::cerr<<"NOOOOOOOO\n";
+        if (coin_glglue_debug()) {
+            cc_debugerror_postinfo("osmesaglue_context_create_offscreen",
+                                   "can not make current context");
+        }
+
         delete osmesa_ctx;
         return 0;
     }
+    if (coin_glglue_debug()) {
+        cc_debugerror_postinfo("osmesaglue_context_create_offscreen",
+                               "current ctx:%p",
+                               osmesa_ctx->ctx);
+    }
+
     /* Allocate the image buffer */
     osmesa_ctx->buffer = new GLubyte [ width * height * 4 ];
     return (osmesa_ctx);
@@ -235,45 +242,95 @@ osmesaglue_context_create_offscreen(unsigned int width, unsigned int height)
 
 void*
 osmesaglue_current_context() {
-    return (OSMesaGetCurrentContext());
+    OSMesaContext ctx=OSMesaGetCurrentContext();
+    if (coin_glglue_debug()) {
+        cc_debugerror_postinfo("osmesaglue_current_context",
+                               "current ctx:%p",
+                               ctx);
+    }
+    return (ctx);
 };
 
 SbBool
 osmesaglue_context_make_current(void * ctx)
 {
-    PRINT_ME();
     osmesaglue_contextdata* osmesa_ctx = static_cast<osmesaglue_contextdata*>(ctx);
-
-    /* Bind the buffer to the context and make it current */
-    if (!OSMesaMakeCurrent( osmesa_ctx->ctx,
-                            osmesa_ctx->buffer,
-                            GL_UNSIGNED_BYTE,
-                            osmesa_ctx->width,
-                            osmesa_ctx->height )) {
-        return FALSE;
+    if (coin_glglue_debug()) {
+        cc_debugerror_postinfo("osmesaglue_context_make_current",
+                               "current ctx:%p",
+                               ctx);
     }
-    return TRUE;
+
+    SbBool result = TRUE;
+    if(!osmesa_ctx) {
+        result = FALSE;
+        if (coin_glglue_debug()) {
+            cc_debugerror_postinfo("osmesaglue_context_make_current",
+                                   "not osmesa context!");
+        }
+    } else {
+        OSMesaContext current_context =  OSMesaGetCurrentContext();
+        if (coin_glglue_debug()) {
+            cc_debugerror_postinfo("osmesaglue_context_make_current",
+                                   "current_context ctx:%p",
+                                   current_context);
+        }
+#if 0
+        if((current_context != 0) && (current_context != osmesa_ctx->storedcontext)) {
+            OSMesaGetColorBuffer(osmesa_ctx->storedcontext,
+                                 &osmesa_ctx->storedcontext_width,
+                                 &osmesa_ctx->storedcontext_height,
+                                 &osmesa_ctx->storedcontext_type,
+                                 &osmesa_ctx->storedcontext_buffer);
+        }
+#endif
+        /* Bind the buffer to the context and make it current */
+        if (!OSMesaMakeCurrent(osmesa_ctx->ctx,
+                               osmesa_ctx->buffer,
+                               GL_UNSIGNED_BYTE,
+                               osmesa_ctx->width,
+                               osmesa_ctx->height)) {
+            result = FALSE;
+            if (coin_glglue_debug()) {
+                cc_debugerror_postinfo("osmesaglue_context_make_current",
+                                       "can not make current context %p",
+                                       osmesa_ctx->ctx);
+            }
+        }
+    }
+    return (result);
 }
 
 void
-osmesaglue_context_destruct(void * ctx)
-{
-    PRINT_ME();
-    /* FIXME: needs to call into the (as of yet unimplemented)
-       C wrapper around the SoContextHandler. 20030310 mortene. */
+osmesaglue_context_destruct(void * ctx) {
 
-    struct osmesaglue_contextdata * context = (struct osmesaglue_contextdata *)ctx;
-
-    delete context;
+    osmesaglue_contextdata * context = (struct osmesaglue_contextdata *)ctx;
     if (coin_glglue_debug()) {
-/*    cc_debugerror_postinfo("osmesaglue_context_destruct",
-                           "destroy context %p", context->osmesacontext);*/
+        cc_debugerror_postinfo("osmesaglue_context_destruct",
+                               "destroy context %p", context->ctx);
     }
+    delete context;
+    context = 0;
 }
 
 void osmesaglue_context_reinstate_previous(void * ctx) {
-    PRINT_ME();
+    osmesaglue_contextdata * context = (struct osmesaglue_contextdata *)ctx;
 
+    if (context->storedcontext) {
+        if (coin_glglue_debug()) {
+            cc_debugerror_postinfo("osmesaglue_context_reinstate_previous",
+                                   "restoring context %p to be current "
+                                   "(drawable==%p)",
+                                   context->storedcontext);
+        }
+        /*
+        OSMesaMakeCurrent(context->storedcontext,
+                          context->storedcontext_buffer,
+                          context->storedcontext_type,
+                          context->storedcontext_width,
+                          context->storedcontext_height);
+                          */
+    }
 }
 
 /* ********************************************************************** */
