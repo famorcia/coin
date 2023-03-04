@@ -218,7 +218,6 @@ osmesaglue_context_create_offscreen(unsigned int width, unsigned int height)
 {
     osmesaglue_contextdata* osmesa_ctx = new osmesaglue_contextdata(width, height);
 
-    // osmesa_ctx->ctx = OSMesaCreateContextExt( OSMESA_RGBA, 16, 0, 0, NULL );
     osmesa_ctx->ctx = OSMesaCreateContext(OSMESA_RGBA, NULL );
     if(!osmesa_ctx->ctx) {
         if (coin_glglue_debug()) {
@@ -252,8 +251,7 @@ osmesaglue_current_context() {
 };
 
 SbBool
-osmesaglue_context_make_current(void * ctx)
-{
+osmesaglue_context_make_current(void * ctx) {
     osmesaglue_contextdata* osmesa_ctx = static_cast<osmesaglue_contextdata*>(ctx);
     if (coin_glglue_debug()) {
         cc_debugerror_postinfo("osmesaglue_context_make_current",
@@ -275,7 +273,6 @@ osmesaglue_context_make_current(void * ctx)
                                    "current_context ctx:%p",
                                    current_context);
         }
-#if 0
         if((current_context != 0) && (current_context != osmesa_ctx->storedcontext)) {
             OSMesaGetColorBuffer(osmesa_ctx->storedcontext,
                                  &osmesa_ctx->storedcontext_width,
@@ -283,7 +280,7 @@ osmesaglue_context_make_current(void * ctx)
                                  &osmesa_ctx->storedcontext_type,
                                  &osmesa_ctx->storedcontext_buffer);
         }
-#endif
+
         /* Bind the buffer to the context and make it current */
         if (!OSMesaMakeCurrent(osmesa_ctx->ctx,
                                osmesa_ctx->buffer,
@@ -323,13 +320,11 @@ void osmesaglue_context_reinstate_previous(void * ctx) {
                                    "(drawable==%p)",
                                    context->storedcontext);
         }
-        /*
         OSMesaMakeCurrent(context->storedcontext,
                           context->storedcontext_buffer,
                           context->storedcontext_type,
                           context->storedcontext_width,
                           context->storedcontext_height);
-                          */
     }
 }
 
